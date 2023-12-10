@@ -3,6 +3,7 @@ const express = require('express');
 const mongoose= require('mongoose');
 const path = require('path');
 const app = express();
+app.use(express.json());
 mongoose.connect('mongodb://127.0.0.1:27017/Ecommerce', {useNewUrlParser: true, useUnifiedTopology: true})
 .then(() => console.log('Connected to MongoDB...'))
 app.use(express.static(path.join(__dirname, '../')));
@@ -50,7 +51,6 @@ app.get('/products', async (req, res) => {
 app.get('/search', async (req, res) => {
     try{
         const products = await mongoose.connection.db.collection('Products').find({name: req.query.name}).toArray();
-        console.log(products);
         res.send(products);
         res.status(200);
     }
@@ -60,6 +60,7 @@ app.get('/search', async (req, res) => {
     }});
 
     const orderSchema = new mongoose.Schema({
+        productname: String,
         customerName: String,
         products: [{
           productId: { type: mongoose.Schema.Types.ObjectId, ref: 'Product' },
@@ -75,9 +76,10 @@ app.get('/search', async (req, res) => {
         console.log(req.body);
         try {
           const order = await Order.create({
+            productname: req.body.productname,
             customerName: req.body.customerName,
             products: req.body.products,
-            totalPrice: req.body.totalPrice,
+            totalPrice: req.body.products[0].quantity*req.body.totalPrice,
             shippingInformation: req.body.shippingInformation,
           });
       
@@ -88,7 +90,17 @@ app.get('/search', async (req, res) => {
         }
       });
       
-
+ // Display orders
+  app.get('/orders', async (req, res) => {
+      try{
+          const orders = await mongoose.connection.db.collection('orders').find().toArray();
+          res.send(orders);
+          res.status(200);
+      }
+      catch(err){
+          console.log(err);
+          res.status(500);
+      }});
       
       
 app.listen(port, () => {
