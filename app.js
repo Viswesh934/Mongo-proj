@@ -99,12 +99,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const price=priceid.trim().replace('Price: ', '');
       console.log(price*2);
       // Prompt the user for shipping information and name
-      const stocku= document.getElementById('real-stock').innerHTML;
-      const stockm= stocku.trim().replace('Stock Quantity: ', '');
-      if(stockQuantity>stockm){
-        alert('Not enough stock');
-        return
-      }
+    
       const shippingInfo = prompt('Enter your shipping information:');
       const customerName = prompt('Enter your name:');
       
