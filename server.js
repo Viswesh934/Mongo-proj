@@ -22,8 +22,7 @@ app.get('/orders.js', (req, res) => {
 app.get('/orders.html', (req, res) => {
     res.sendFile(__dirname + '/orders.html');
 });
-// Display products
-
+// Products session
 // Products Schema
 const productSchema = new mongoose.Schema({
     name: String,
@@ -59,6 +58,19 @@ app.get('/search', async (req, res) => {
         res.status(500);
     }});
 
+// Update stock quantity using Product model
+app.put('/update-stock', async (req, res) => {
+    const productId = req.body.productId;
+    const stockQuantity = req.body.stockQuantity;
+    try{
+        const quantity= Product.findByIdAndUpdate(productId, {stockQuantity: stockQuantity});
+    }
+    catch(err){
+        console.log(err);
+        res.status(500);
+}});
+
+// Orders section
     const orderSchema = new mongoose.Schema({
         productname: String,
         customerName: String,
@@ -67,7 +79,8 @@ app.get('/search', async (req, res) => {
           quantity: Number
         }],
         totalPrice: Number,
-        shippingInformation: String
+        shippingInformation: String,
+        orderId: String,
       });
       
       // Use the existing "Orders" collection
@@ -101,7 +114,48 @@ app.get('/search', async (req, res) => {
           console.log(err);
           res.status(500);
       }});
-      
+
+      // Delete order
+app.delete('/delete-order', async (req, res) => {
+        const orderId = req.body.orderId;
+    
+        try {
+            // Delete the order from the database
+            const deletedOrder = await Order.findByIdAndDelete(orderId);
+            if (!deletedOrder) {
+                return res.status(404).json({ message: 'Order not found' });
+            }
+    
+            res.json({ message: 'Order cancelled successfully' });
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ message: 'Internal Server Error' });
+        }
+    });
+    
+// edit order's shipping information and customer name
+app.put('/edit-order', async (req, res) => {
+        const orderId = req.body.orderId;
+        const shippingInformation = req.body.shippingInformation;
+        const customerName = req.body.customerName;
+    
+        try {
+            // Update the order in the database
+            const updatedOrder = await Order.findByIdAndUpdate(orderId, {
+                shippingInformation: shippingInformation,
+                customerName: customerName,
+            });
+            if (!updatedOrder) {
+                return res.status(404).json({ message: 'Order not found' });
+            }
+    
+            res.json({ message: 'Order updated successfully' });
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ message: 'Internal Server Error' });
+        }
+    });
+
       
 app.listen(port, () => {
     console.log(`Server running at port `+port);

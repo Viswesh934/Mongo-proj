@@ -52,7 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <p>${product.description}</p>
         <p id="price">Price: ${product.price}</p>
         <p>Category: ${product.category}</p>
-        <p>Stock Quantity: ${product.stockQuantity}</p>
+        <p id="real-stock">Stock Quantity: ${product.stockQuantity}</p>
         <input type="number" id="stockQuantity" name="stockQuantity" min="1" max="${product.stockQuantity}" value="1">
         <button class="add-to-cart" data-id=${product._id}>Add to Cart</button>
       `;
@@ -96,6 +96,7 @@ document.addEventListener('DOMContentLoaded', () => {
   
           if (response.ok) {
             console.log('Product added to the cart with customer information');
+            updateStockQuantity();
             // You can update the UI or perform other actions as needed
           } else {
             console.error('Failed to add product to the cart');
@@ -108,6 +109,33 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
   });
+
+  // update stock quantity
+  const updateStockQuantity= async () => {
+    const realStock = document.getElementById('real-stock').innerHTML;
+    const stockQuantity = document.getElementById('stockQuantity').value;
+    const productname = document.getElementById('productname').innerHTML;
+    console.log(stockQuantity);
+    console.log(productname);
+    await fetch('http://localhost:3000/update-stock', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        name: productname,
+        stockQuantity: stockQuantity,
+      }),
+    }).then((res) => {
+      if (res.ok) {
+        console.log('Stock quantity updated');
+      } else {
+        console.error('Failed to update stock quantity');
+      }
+    }).catch((err) => {
+      console.error(err);
+    });
+  }
   
 
 });
