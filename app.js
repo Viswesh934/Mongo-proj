@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const cart = document.getElementById('cart');
   const addtocart = document.getElementsByClassName('add-to-cart');
   
+  
   // Function to fetch and display all products
   const displayAllProducts = async () => {
     try {
@@ -59,7 +60,34 @@ document.addEventListener('DOMContentLoaded', () => {
       productlist.appendChild(div);
     });
   }
-
+  // update stock quantity
+  const updateStockQuantity = async (productName, quantity) => {
+    try {
+      // Make a PUT request to update the stock quantity
+      const stock= document.getElementById('real-stock').innerHTML;
+      const stock1= stock.trim().replace('Stock Quantity: ', '');
+      const restock=stock1-quantity
+      const response = await fetch(`http://localhost:3000/update-stock/${productName}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          stockQuantity: restock, // Updated key to match the server
+        }),
+      });
+  
+      if (response.ok) {
+        console.log('Stock quantity updated successfully');
+        // You can update the UI or perform other actions as needed
+      } else {
+        console.error('Failed to update stock quantity');
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+  
   productlist.addEventListener('click', async (event) => {
     const addToCartButton = event.target.closest('.add-to-cart');
   
@@ -71,9 +99,16 @@ document.addEventListener('DOMContentLoaded', () => {
       const price=priceid.trim().replace('Price: ', '');
       console.log(price*2);
       // Prompt the user for shipping information and name
+      const stocku= document.getElementById('real-stock').innerHTML;
+      const stockm= stocku.trim().replace('Stock Quantity: ', '');
+      if(stockQuantity>stockm){
+        alert('Not enough stock');
+        return
+      }
       const shippingInfo = prompt('Enter your shipping information:');
       const customerName = prompt('Enter your name:');
-  
+      
+      
       if (productId && shippingInfo && customerName) {
         try {
           // Make a POST request to add the product to the cart
@@ -93,10 +128,9 @@ document.addEventListener('DOMContentLoaded', () => {
               shippingInformation: shippingInfo,
             }),
           });
-  
           if (response.ok) {
+            await updateStockQuantity(productname, stockQuantity);
             console.log('Product added to the cart with customer information');
-            updateStockQuantity();
             // You can update the UI or perform other actions as needed
           } else {
             console.error('Failed to add product to the cart');
@@ -110,32 +144,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // update stock quantity
-  const updateStockQuantity= async () => {
-    const realStock = document.getElementById('real-stock').innerHTML;
-    const stockQuantity = document.getElementById('stockQuantity').value;
-    const productname = document.getElementById('productname').innerHTML;
-    console.log(stockQuantity);
-    console.log(productname);
-    await fetch('http://localhost:3000/update-stock', {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        name: productname,
-        stockQuantity: stockQuantity,
-      }),
-    }).then((res) => {
-      if (res.ok) {
-        console.log('Stock quantity updated');
-      } else {
-        console.error('Failed to update stock quantity');
-      }
-    }).catch((err) => {
-      console.error(err);
-    });
-  }
   
 
 });

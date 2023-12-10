@@ -2,6 +2,7 @@ const port= process.env.PORT || 3000;
 const express = require('express');
 const mongoose= require('mongoose');
 const path = require('path');
+const cors = require('cors');
 const app = express();
 app.use(express.json());
 mongoose.connect('mongodb://127.0.0.1:27017/Ecommerce', {useNewUrlParser: true, useUnifiedTopology: true})
@@ -57,18 +58,32 @@ app.get('/search', async (req, res) => {
         console.log(err);
         res.status(500);
     }});
+    // Update stock quantity using Product model without using any api call
 
 // Update stock quantity using Product model
-app.put('/update-stock', async (req, res) => {
-    const productId = req.body.productId;
+app.put('/update-stock/:productName', async (req, res) => {
+    const productName = req.params.productName;
     const stockQuantity = req.body.stockQuantity;
-    try{
-        const quantity= Product.findByIdAndUpdate(productId, {stockQuantity: stockQuantity});
+  
+    try {
+      const updatedProduct = await Product.findOneAndUpdate(
+        { name: productName },
+        { stockQuantity: stockQuantity }, // Use $inc to increment or decrement the stockQuantity
+        { new: true }
+      );
+  
+      if (!updatedProduct) {
+        return res.status(404).json({ message: 'Product not found' });
+      }
+  
+      res.json({ message: 'Stock quantity updated successfully', updatedProduct });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: 'Internal Server Error' });
     }
-    catch(err){
-        console.log(err);
-        res.status(500);
-}});
+  });
+  
+  
 
 // Orders section
     const orderSchema = new mongoose.Schema({
@@ -86,7 +101,6 @@ app.put('/update-stock', async (req, res) => {
       // Use the existing "Orders" collection
       const Order = mongoose.model('Order', orderSchema, 'orders');
       app.post('/add-to-cart', async (req, res) => {
-        console.log(req.body);
         try {
           const order = await Order.create({
             productname: req.body.productname,
